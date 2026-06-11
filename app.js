@@ -199,6 +199,70 @@ function totalWithTaxBE(amount) {
   return amount + tax + shipping + handling;
 }
 
+// Duplication (gros bloc) : processOrderFR et processOrderDE sont identiques.
+// Assez longues pour être détectées par le CPD de SonarQube.
+function processOrderFR(order) {
+  let subtotal = 0;
+  for (let i = 0; i < order.items.length; i++) {
+    const item = order.items[i];
+    subtotal += item.price * item.quantity;
+  }
+  const tax = subtotal * 0.2;
+  let shipping = 0;
+  if (subtotal > 100) {
+    shipping = 0;
+  } else if (subtotal > 50) {
+    shipping = 5;
+  } else {
+    shipping = 10;
+  }
+  let discount = 0;
+  if (order.coupon === "PROMO10") {
+    discount = subtotal * 0.1;
+  } else if (order.coupon === "PROMO20") {
+    discount = subtotal * 0.2;
+  }
+  const total = subtotal + tax + shipping - discount;
+  return {
+    subtotal: subtotal,
+    tax: tax,
+    shipping: shipping,
+    discount: discount,
+    total: total,
+  };
+}
+
+function processOrderDE(order) {
+  let subtotal = 0;
+  for (let i = 0; i < order.items.length; i++) {
+    const item = order.items[i];
+    subtotal += item.price * item.quantity;
+  }
+  const tax = subtotal * 0.2;
+  let shipping = 0;
+  if (subtotal > 100) {
+    shipping = 0;
+  } else if (subtotal > 50) {
+    shipping = 5;
+  } else {
+    shipping = 10;
+  }
+  let discount = 0;
+  if (order.coupon === "PROMO10") {
+    discount = subtotal * 0.1;
+  } else if (order.coupon === "PROMO20") {
+    discount = subtotal * 0.2;
+  }
+  const total = subtotal + tax + shipping - discount;
+  return {
+    subtotal: subtotal,
+    tax: tax,
+    shipping: shipping,
+    discount: discount,
+    total: total,
+  };
+}
+
 module.exports = {
   findUserByName,
   pingHost,
@@ -221,6 +285,8 @@ module.exports = {
   legacyCompute,
   totalWithTaxFR,
   totalWithTaxBE,
+  processOrderFR,
+  processOrderDE,
   // exportées pour information, volontairement non testées :
   dbPassword,
   apiKey,
