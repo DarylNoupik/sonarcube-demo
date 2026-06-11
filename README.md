@@ -1,17 +1,17 @@
-# Étape 1 — un premier défaut
+# Étape 2 — tous les types de défauts
 
-Objectif : faire tourner SonarQube pour la première fois sur un fichier minuscule et lire deux issues.
+Objectif : voir SonarQube classer les problèmes par **type**, et apprendre à filtrer les issues.
 
 ## Le code
 
-`app.js` contient seulement deux défauts plantés exprès :
+`app.js` est maintenant rempli de défauts plantés exprès, regroupés par catégorie. Chaque fonction porte un commentaire avec le type d'issue et la référence de règle (Sxxxx) :
 
-- un **mot de passe en dur** (Security Hotspot) ;
-- un **bug** : un `if/else` dont les deux branches font la même chose.
+- **Vulnérabilités / Security Hotspots** : secret en dur, IP en dur, injection SQL, injection de commande OS, `eval`, hachage MD5, `Math.random`, URL en HTTP.
+- **Bugs** : branches identiques, comparaison avec soi-même, conditions dupliquées, code mort, condition toujours vraie.
+- **Code smells** : variable inutilisée, `catch` vide, `var`, `==`, paramètre inutilisé, booléen redondant, ternaire imbriqué, complexité cognitive, auto-affectation, TODO, code commenté.
+- **Duplication** : `totalWithTaxFR`/`BE` et `processOrderFR`/`DE`.
 
 ## Lancer l'analyse
-
-Le serveur SonarQube doit tourner sur http://localhost:9000 (voir le README de la branche `main` pour le démarrer avec Docker).
 
 ```cmd
 docker run --rm -v "%cd%:/usr/src" sonarsource/sonar-scanner-cli -Dsonar.projectKey=demo-js -Dsonar.sources=. -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.token=VOTRE_TOKEN
@@ -19,12 +19,12 @@ docker run --rm -v "%cd%:/usr/src" sonarsource/sonar-scanner-cli -Dsonar.project
 
 ## Ce qu'on observe
 
-Sur le dashboard du projet : 1 bug et 1 security hotspot. Ouvre chaque issue et lis l'onglet « Why is this an issue? ». C'est tout pour cette étape.
+Dans l'onglet **Issues**, utilise les filtres de gauche : par **type** (Bug, Vulnerability, Code Smell), par **sévérité**, par **règle**. Va aussi voir l'onglet **Security Hotspots** et la **duplication** dans Measures. Pas encore de couverture : ce sera l'étape suivante.
 
 ## Étape suivante
 
 ```
-git checkout etape-2-tous-les-defauts
+git checkout etape-3-tests-jest
 ```
 
-On y remplit `app.js` de tous les types de défauts.
+On ajoute Jest, des tests unitaires et la couverture de code.
