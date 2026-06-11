@@ -1,13 +1,12 @@
-# Étape 3 — tests Jest et couverture
+# Étape 4 — rapport d'exécution des tests
 
-Objectif : ajouter des tests unitaires et voir la **couverture de code** remonter dans SonarQube.
+Objectif : voir dans SonarQube le **nombre de tests exécutés** et le taux de réussite, en plus de la couverture.
 
 ## Ce qui change
 
-- `app.test.js` : 20 tests Jest. On en couvre volontairement une partie seulement, pour que la couverture soit partielle (~42 %) et visible.
-- `package.json` : configure Jest avec le rapport de couverture au format `lcov`.
+La couverture (`lcov.info`) ne dit que *quelles lignes* sont exécutées. Elle ne dit rien sur le **nombre de tests**, lesquels passent ou échouent. Pour ça il faut un second rapport, au format générique de SonarQube.
 
-Rappel important : SonarQube **ne lance pas** les tests. C'est Jest qui les exécute et produit `coverage/lcov.info`, que le scanner lit ensuite.
+- `package.json` : ajoute le reporter `jest-sonar`, qui génère `test-report.xml` à chaque `npm test`.
 
 ## Lancer les tests puis l'analyse
 
@@ -16,22 +15,24 @@ npm install
 npm test
 ```
 
-`npm test` crée le dossier `coverage/` avec `lcov.info`. Ensuite seulement :
+`npm test` produit maintenant **deux** rapports : `coverage/lcov.info` (couverture) et `test-report.xml` (exécution). Puis :
 
 ```cmd
-docker run --rm -v "%cd%:/usr/src" sonarsource/sonar-scanner-cli -Dsonar.projectKey=demo-js -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/*.test.js -Dsonar.exclusions=node_modules/**,coverage/** -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.token=VOTRE_TOKEN
+docker run --rm -v "%cd%:/usr/src" sonarsource/sonar-scanner-cli -Dsonar.projectKey=demo-js -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/*.test.js -Dsonar.exclusions=node_modules/**,coverage/** -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.testExecutionReportPaths=test-report.xml -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.token=VOTRE_TOKEN
 ```
+
+Le seul paramètre nouveau est `-Dsonar.testExecutionReportPaths=test-report.xml`.
 
 ## Ce qu'on observe
 
-Le bloc **Coverage** affiche un pourcentage. Dans l'onglet **Code**, la marge montre les lignes couvertes (vert), non couvertes (rouge) et partiellement couvertes (jaune). Les fonctions non testées (`pingHost`, `runExpression`, `classify`…) ressortent en rouge.
+Dans Measures apparaissent les métriques **Unit Tests** (20), **Test Success Density** (100 %), **Test Errors/Failures** (0) et la durée.
 
-Piège classique : si la couverture reste à 0 %, c'est que `npm test` n'a pas été lancé avant le scanner.
+À savoir : SonarQube affiche seulement le **compteur** de tests, jamais la liste test par test. Pour voir chaque test nommé, il faut un rapport HTML (`jest-html-reporter`) ou le détail côté CI — c'est ce que fait la branche `main`.
 
 ## Étape suivante
 
 ```
-git checkout etape-4-rapport-tests
+git checkout main
 ```
 
-On ajoute le rapport d'exécution des tests (nombre de tests, réussis/échoués).
+La version complète : rapport HTML test par test, plus le README tutoriel détaillé (CI/CD, Quality Gates, notes A–E, export Docker…).
