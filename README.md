@@ -1,30 +1,37 @@
-# Étape 2 — tous les types de défauts
+# Étape 3 — tests Jest et couverture
 
-Objectif : voir SonarQube classer les problèmes par **type**, et apprendre à filtrer les issues.
+Objectif : ajouter des tests unitaires et voir la **couverture de code** remonter dans SonarQube.
 
-## Le code
+## Ce qui change
 
-`app.js` est maintenant rempli de défauts plantés exprès, regroupés par catégorie. Chaque fonction porte un commentaire avec le type d'issue et la référence de règle (Sxxxx) :
+- `app.test.js` : 20 tests Jest. On en couvre volontairement une partie seulement, pour que la couverture soit partielle (~42 %) et visible.
+- `package.json` : configure Jest avec le rapport de couverture au format `lcov`.
 
-- **Vulnérabilités / Security Hotspots** : secret en dur, IP en dur, injection SQL, injection de commande OS, `eval`, hachage MD5, `Math.random`, URL en HTTP.
-- **Bugs** : branches identiques, comparaison avec soi-même, conditions dupliquées, code mort, condition toujours vraie.
-- **Code smells** : variable inutilisée, `catch` vide, `var`, `==`, paramètre inutilisé, booléen redondant, ternaire imbriqué, complexité cognitive, auto-affectation, TODO, code commenté.
-- **Duplication** : `totalWithTaxFR`/`BE` et `processOrderFR`/`DE`.
+Rappel important : SonarQube **ne lance pas** les tests. C'est Jest qui les exécute et produit `coverage/lcov.info`, que le scanner lit ensuite.
 
-## Lancer l'analyse
+## Lancer les tests puis l'analyse
 
 ```cmd
-docker run --rm -v "%cd%:/usr/src" sonarsource/sonar-scanner-cli -Dsonar.projectKey=demo-js -Dsonar.sources=. -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.token=VOTRE_TOKEN
+npm install
+npm test
+```
+
+`npm test` crée le dossier `coverage/` avec `lcov.info`. Ensuite seulement :
+
+```cmd
+docker run --rm -v "%cd%:/usr/src" sonarsource/sonar-scanner-cli -Dsonar.projectKey=demo-js -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/*.test.js -Dsonar.exclusions=node_modules/**,coverage/** -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.token=VOTRE_TOKEN
 ```
 
 ## Ce qu'on observe
 
-Dans l'onglet **Issues**, utilise les filtres de gauche : par **type** (Bug, Vulnerability, Code Smell), par **sévérité**, par **règle**. Va aussi voir l'onglet **Security Hotspots** et la **duplication** dans Measures. Pas encore de couverture : ce sera l'étape suivante.
+Le bloc **Coverage** affiche un pourcentage. Dans l'onglet **Code**, la marge montre les lignes couvertes (vert), non couvertes (rouge) et partiellement couvertes (jaune). Les fonctions non testées (`pingHost`, `runExpression`, `classify`…) ressortent en rouge.
+
+Piège classique : si la couverture reste à 0 %, c'est que `npm test` n'a pas été lancé avant le scanner.
 
 ## Étape suivante
 
 ```
-git checkout etape-3-tests-jest
+git checkout etape-4-rapport-tests
 ```
 
-On ajoute Jest, des tests unitaires et la couverture de code.
+On ajoute le rapport d'exécution des tests (nombre de tests, réussis/échoués).
